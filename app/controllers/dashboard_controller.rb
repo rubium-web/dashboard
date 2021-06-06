@@ -16,7 +16,19 @@ class DashboardController < ApplicationController
     @statuses = get_statuses
     @projects = get_projects
     if @query.valid?
-      @issues = @query.issues
+      items = @query.issues
+      @issues = items.map do |item|
+        {
+          :id => item.id,
+          :subject => item.subject,
+          :status_id => item.status.id,
+          :project_id => item.project.id,
+          :created_on => item.created_on,
+          :author => item.author.name(User::USER_FORMATS[:firstname_lastname]),
+          :executor => item.assigned_to.nil? ? '' : item.assigned_to.name
+        }
+      end
+      @issues.sort_by { |item| item[:created_on] }
     else
       @issues = get_issues(@selected_project_id, show_sub_tasks)
     end
