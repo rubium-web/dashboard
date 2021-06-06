@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
 class DashboardController < ApplicationController
+
+  helper :queries
+  include QueriesHelper
+
   def index
+    retrieve_query(IssueQuery, true)
     @use_drop_down_menu = Setting.plugin_dashboard['use_drop_down_menu']
     @selected_project_id = params[:project_id].nil? ? -1 : params[:project_id].to_i
     show_sub_tasks = Setting.plugin_dashboard['display_child_projects_tasks']
@@ -10,7 +15,11 @@ class DashboardController < ApplicationController
     @display_minimized_closed_issue_cards = Setting.plugin_dashboard['display_closed_statuses'] ? Setting.plugin_dashboard['display_minimized_closed_issue_cards'] : false
     @statuses = get_statuses
     @projects = get_projects
-    @issues = get_issues(@selected_project_id, show_sub_tasks)
+    if @query.valid?
+      @issues = @query.issues
+    else
+      @issues = get_issues(@selected_project_id, show_sub_tasks)
+    end
   end
 
   def set_issue_status
